@@ -1,0 +1,86 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { SiteShell } from "@/components/site-shell";
+import {
+  getDocBySlug,
+  getDocsNavigation,
+  getSiteBySlug,
+  getTenantUrl,
+} from "@/lib/sites";
+
+type TenantPageProps = {
+  params: {
+    site: string;
+    slug?: string[];
+  };
+};
+
+export function generateMetadata({ params }: TenantPageProps): Metadata {
+  const site = getSiteBySlug(params.site);
+  if (!site) {
+    return {
+      title: "Tenant not found",
+    };
+  }
+
+  const doc = getDocBySlug(site.slug, params.slug ?? []);
+  if (!doc) {
+    return {
+      title: site.name,
+      description: site.description,
+    };
+  }
+
+  return {
+    title: `${doc.title} · ${site.name}`,
+    description: doc.summary,
+    alternates: {
+      canonical: getTenantUrl(site, `/${doc.slug.join("/")}`),
+    },
+  };
+}
+
+const renderParagraph = (paragraph: string, key: string) => {
+  const segments = paragraph.split(/`([^`]+)`/g);
+  return segments.map((segment, index) =>
+    index % 2 === 1 ? (
+      <code
+        key={`${key}-code-${index}`}
+        className="rounded bg-white/10 px-1 font-mono text-sm text-slate-100"
+      >
+        {segment}
+      </code>
+    ) : (
+      segment
+    )
+  );
+};
+
+export default function TenantDocPage({ params }: TenantPageProps) {
+  const site = getSiteBySlug(params.site);
+  if (!site) {
+    notFound();
+  }
+
+  const doc = getDocBySlug(site.slug, params.slug ?? []);
+  if (!doc) {
+    notFound();
+  }
+
+  const navigation = getDocsNavigation(site.slug);
+
+  return (
+    <SiteShell site={site} docs={navigation} activeDoc={doc}>
+      {doc.content.map((section) => (
+        <section key={section.heading}>
+          <h2>{section.heading}</h2>
+          {section.copy.map((paragraph, index) => (
+            <p key={`${section.heading}-${index}`}>
+              {renderParagraph(paragraph, `${section.heading}-${index}`)}
+            </p>
+          ))}
+        </section>
+      ))}
+    </SiteShell>
+  );
+}
