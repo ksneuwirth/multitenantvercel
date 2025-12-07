@@ -9,21 +9,22 @@ import {
 } from "@/lib/sites";
 
 type TenantPageProps = {
-  params: {
+  params: Promise<{
     site: string;
     slug?: string[];
-  };
+  }>;
 };
 
-export function generateMetadata({ params }: TenantPageProps): Metadata {
-  const site = getSiteBySlug(params.site);
+export async function generateMetadata({ params }: TenantPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const site = getSiteBySlug(resolvedParams.site);
   if (!site) {
     return {
       title: "Tenant not found",
     };
   }
 
-  const doc = getDocBySlug(site.slug, params.slug ?? []);
+  const doc = getDocBySlug(site.slug, resolvedParams.slug ?? []);
   if (!doc) {
     return {
       title: site.name,
@@ -56,13 +57,14 @@ const renderParagraph = (paragraph: string, key: string) => {
   );
 };
 
-export default function TenantDocPage({ params }: TenantPageProps) {
-  const site = getSiteBySlug(params.site);
+export default async function TenantDocPage({ params }: TenantPageProps) {
+  const resolvedParams = await params;
+  const site = getSiteBySlug(resolvedParams.site);
   if (!site) {
     notFound();
   }
 
-  const doc = getDocBySlug(site.slug, params.slug ?? []);
+  const doc = getDocBySlug(site.slug, resolvedParams.slug ?? []);
   if (!doc) {
     notFound();
   }
