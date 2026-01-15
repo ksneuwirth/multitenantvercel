@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { getSiteBySlug } from "@/lib/sites";
 import { addDomainToProject, ensureVercelEnv } from "@/lib/vercel";
 
-const domainPattern = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,}$/i;
+const domainPattern =
+  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
 
 export async function GET() {
   const env = {
@@ -20,8 +21,28 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { domain, siteSlug } = body ?? {};
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Provide a valid JSON body." },
+      { status: 400 }
+    );
+  }
+
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json(
+      { error: "Provide a JSON object with `domain` and `siteSlug`." },
+      { status: 400 }
+    );
+  }
+
+  const { domain, siteSlug } = body as {
+    domain?: unknown;
+    siteSlug?: unknown;
+  };
 
   if (!domain || typeof domain !== "string" || !domainPattern.test(domain)) {
     return NextResponse.json(
