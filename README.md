@@ -21,7 +21,7 @@ src/
   data/sites.ts              # sample tenants + docs content
   lib/sites.ts               # host matching + helpers (buildDocPath, etc.)
   lib/vercel.ts              # Domain API helper
-middleware.ts                # rewrites hostnames to the right tenant tree
+src/middleware.ts            # rewrites hostnames to the right tenant tree
 .env.example                 # platform + Vercel config knobs
 ```
 

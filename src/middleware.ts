@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSiteByHost } from "./src/lib/sites";
+import { getSiteByHost } from "./lib/sites";
 
 const PUBLIC_FILE = /\.(.*)$/;
 
